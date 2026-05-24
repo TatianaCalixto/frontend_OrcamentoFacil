@@ -6,7 +6,7 @@ import '../features/auth/application/auth_controller.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
 import '../features/auth/presentation/splash_screen.dart';
-import '../features/home/presentation/dashboard_placeholder.dart';
+import '../features/dashboard/presentation/dashboard_screen.dart';
 
 /// Adaptador que faz o `GoRouter` reagir a mudanças no `AuthState`.
 class _RouterRefreshNotifier extends ChangeNotifier {
@@ -34,7 +34,7 @@ GoRouter buildRouter(Ref ref) {
       ),
       GoRoute(
         path: '/dashboard',
-        builder: (context, state) => const DashboardPlaceholder(),
+        builder: (context, state) => const DashboardScreen(),
       ),
     ],
     redirect: (context, st) {
