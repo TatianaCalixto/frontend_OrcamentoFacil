@@ -7,6 +7,7 @@ import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
 import '../features/auth/presentation/splash_screen.dart';
 import '../features/dashboard/presentation/dashboard_screen.dart';
+import '../features/transactions/presentation/transaction_form_screen.dart';
 import '../features/transactions/presentation/transactions_list_screen.dart';
 
 /// Adaptador que faz o `GoRouter` reagir a mudanças no `AuthState`.
@@ -40,6 +41,20 @@ GoRouter buildRouter(Ref ref) {
       GoRoute(
         path: '/transactions',
         builder: (context, state) => const TransactionsListScreen(),
+      ),
+      GoRoute(
+        path: '/transactions/new',
+        builder: (context, state) => const TransactionFormScreen(),
+      ),
+      GoRoute(
+        path: '/transactions/:id/edit',
+        builder: (context, state) {
+          final id = int.tryParse(state.pathParameters['id'] ?? '');
+          if (id == null) {
+            return const TransactionFormScreen();
+          }
+          return TransactionFormScreen(transactionId: id);
+        },
       ),
     ],
     redirect: (context, st) {
