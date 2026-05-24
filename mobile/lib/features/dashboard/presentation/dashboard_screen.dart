@@ -52,6 +52,67 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ),
         ],
       ),
+      drawer: Drawer(
+        child: SafeArea(
+          child: ListView(
+            children: [
+              const DrawerHeader(
+                child: Text(
+                  'OrçaFácil',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.dashboard),
+                title: const Text('Dashboard'),
+                onTap: () => context.go('/dashboard'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.list_alt),
+                title: const Text('Transações'),
+                onTap: () => context.go('/transactions'),
+              ),
+              ListTile(
+                key: const Key('drawer-categories'),
+                leading: const Icon(Icons.category),
+                title: const Text('Categorias'),
+                onTap: () => context.go('/categories'),
+              ),
+              ListTile(
+                key: const Key('drawer-budgets'),
+                leading: const Icon(Icons.account_balance_wallet),
+                title: const Text('Orçamentos'),
+                onTap: () => context.go('/budgets'),
+              ),
+              ListTile(
+                key: const Key('drawer-goals'),
+                leading: const Icon(Icons.flag),
+                title: const Text('Metas'),
+                onTap: () => context.go('/goals'),
+              ),
+              const Divider(),
+              ListTile(
+                key: const Key('drawer-profile'),
+                leading: const Icon(Icons.person),
+                title: const Text('Perfil'),
+                onTap: () => context.go('/profile'),
+              ),
+              ListTile(
+                key: const Key('drawer-settings'),
+                leading: const Icon(Icons.settings),
+                title: const Text('Configurações'),
+                onTap: () => context.go('/settings'),
+              ),
+              ListTile(
+                key: const Key('drawer-import-csv'),
+                leading: const Icon(Icons.upload_file),
+                title: const Text('Importar CSV'),
+                onTap: () => context.go('/imports/csv'),
+              ),
+            ],
+          ),
+        ),
+      ),
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () =>
