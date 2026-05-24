@@ -3,6 +3,8 @@
 App de controle financeiro pessoal. Este repositório concentra o **app mobile (Flutter)** do projeto.
 
 > O backend (FastAPI), painel web (Streamlit), scripts e documentação técnica vivem em [backend_OrcamentoFacil](https://github.com/TatianaCalixto/backend_OrcamentoFacil).
+>
+> 📋 **Este código é o substrato de um caso de uso de metodologia.** Para entender o método "documentação viva + agente executor" usado para planejar, executar e revisar este projeto com Claude Code, veja → [metodologia_OrcamentoFacil](https://github.com/TatianaCalixto/metodologia_OrcamentoFacil).
 
 ## Estrutura
 
