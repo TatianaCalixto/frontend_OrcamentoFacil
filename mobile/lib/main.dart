@@ -1,13 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Carrega `.env` de forma tolerante: se o arquivo não existir (ex.: builds
+  // sem segredos configurados), usa defaults definidos em `AppEnv`.
+  try {
+    await dotenv.load();
+  } catch (_) {
+    // .env ausente; segue com defaults.
+  }
   runApp(const ProviderScope(child: OrcaFacilApp()));
 }
 
 /// Raiz do aplicativo OrçaFácil.
 ///
-/// Em S11-T01 a app exibe apenas uma tela placeholder. As telas reais
+/// Em S11-T02 a app continua exibindo um placeholder. As telas reais
 /// (Splash, Login, Cadastro) são introduzidas em S11-T03.
 class OrcaFacilApp extends StatelessWidget {
   const OrcaFacilApp({super.key});
