@@ -1,0 +1,32 @@
+# Dependabot — OrçaFácil frontend/mobile (S20-T01, Fase 3)
+# Varredura semanal de CVE/atualizações nas dependências do app Flutter (pub)
+# e dos GitHub Actions. Grupos: prod / dev / actions.
+#
+# Nota: o bloco github-actions abaixo só encontra workflows a partir da S21
+# (quando o CI mobile é criado); fica configurado por antecedência e é inócuo
+# enquanto não houver workflows. Os PRs automáticos para vulnerabilidades
+# High/Critical vêm do "Dependabot security updates" (toggle de repositório,
+# Settings > Code security and analysis) — habilitar lá além deste arquivo.
+version: 2
+updates:
+  # --- App Flutter — pub ---
+  - package-ecosystem: "pub"
+    directory: "/mobile"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    groups:
+      prod:
+        dependency-type: "production"
+      dev:
+        dependency-type: "development"
+
+  # --- GitHub Actions ---
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      actions:
+        patterns:
+          - "*"
