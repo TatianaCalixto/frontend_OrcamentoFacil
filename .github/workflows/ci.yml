@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  mobile:
+    name: Mobile (analyze + test + coverage)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: mobile
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.38.1"
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze (gate)
+        run: flutter analyze
+
+      - name: Test (coverage)
+        run: flutter test --coverage
+
+      - name: Coverage gate (>= 70%)
+        run: |
+          python3 - <<'EOF'
+          lines = hits = 0
+          with open("coverage/lcov.info", encoding="utf-8") as fh:
+              for line in fh:
+                  if line.startswith("LF:"):
+                      lines += int(line[3:])
+                  elif line.startswith("LH:"):
+                      hits += int(line[3:])
+          pct = (100 * hits / lines) if lines else 0.0
+          print(f"Cobertura: {hits}/{lines} = {pct:.1f}%")
+          if pct < 70:
+              raise SystemExit(f"Cobertura {pct:.1f}% abaixo do minimo de 70%")
+          EOF
