@@ -140,6 +140,33 @@ void main() {
       expect(api.updateCalls.first['name'], 'Mercado novo');
     });
 
+    testWidgets('picker de ícone exibe grade e seleção persiste no submit',
+        (tester) async {
+      final api = FakeCategoriesApi();
+      await tester.pumpWidget(_wrap(api: api));
+      await tester.pumpAndSettle();
+
+      // Picker está visível.
+      expect(find.byKey(const Key('cat-icon-palette')), findsOneWidget);
+      // Vários ícones esperados estão presentes.
+      expect(find.byKey(const Key('cat-icon-shopping_cart')), findsOneWidget);
+      expect(find.byKey(const Key('cat-icon-restaurant')), findsOneWidget);
+      expect(find.byKey(const Key('cat-icon-savings')), findsOneWidget);
+
+      // Default = 'category'. Seleciona outro.
+      await tester.enterText(
+        find.byKey(const Key('cat-field-name')),
+        'Saúde',
+      );
+      await tester.tap(find.byKey(const Key('cat-icon-local_hospital')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('cat-form-submit')));
+      await tester.pumpAndSettle();
+
+      expect(api.createCalls, hasLength(1));
+      expect(api.createCalls.first['icon'], 'local_hospital');
+    });
+
     testWidgets('categoria padrão: dropdown de tipo fica desabilitado',
         (tester) async {
       final api = FakeCategoriesApi();

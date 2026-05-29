@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/theme/app_colors.dart';
 import '../../transactions/application/transactions_controller.dart';
 import '../../transactions/data/transaction_models.dart';
 import '../application/imports_controller.dart';
@@ -223,7 +224,7 @@ class ImportResultPanel extends StatelessWidget {
                   key: const Key('import-stat-created'),
                   label: 'Criadas',
                   value: '${result.createdCount}',
-                  color: Colors.green,
+                  color: AppColors.success,
                   icon: Icons.check_circle_outline,
                 ),
                 const SizedBox(width: 12),
@@ -231,7 +232,7 @@ class ImportResultPanel extends StatelessWidget {
                   key: const Key('import-stat-skipped'),
                   label: 'Ignoradas',
                   value: '${result.skippedCount}',
-                  color: Colors.orange,
+                  color: AppColors.warning,
                   icon: Icons.skip_next,
                 ),
                 const SizedBox(width: 12),
@@ -239,7 +240,7 @@ class ImportResultPanel extends StatelessWidget {
                   key: const Key('import-stat-errors'),
                   label: 'Erros',
                   value: '${result.errors.length}',
-                  color: Colors.red,
+                  color: AppColors.danger,
                   icon: Icons.error_outline,
                 ),
               ],
@@ -265,12 +266,12 @@ class ImportResultPanel extends StatelessWidget {
                       leading: CircleAvatar(
                         radius: 14,
                         backgroundColor:
-                            Colors.red.withValues(alpha: 0.15),
+                            AppColors.danger.withValues(alpha: 0.15),
                         child: Text(
                           '${e.lineNumber}',
                           style: const TextStyle(
                             fontSize: 11,
-                            color: Colors.red,
+                            color: AppColors.danger,
                             fontWeight: FontWeight.bold,
                           ),
                         ),

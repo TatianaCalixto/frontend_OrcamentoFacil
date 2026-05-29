@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/theme/app_colors.dart';
 import '../../transactions/data/transaction_models.dart';
 import '../application/categories_controller.dart';
 import '../data/categories_api.dart';
@@ -136,7 +137,7 @@ class _CategoryFormScreenState extends ConsumerState<CategoryFormScreen> {
                     key: const Key('cat-default-banner'),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.amber.withValues(alpha: 0.15),
+                      color: AppColors.attention.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Text(

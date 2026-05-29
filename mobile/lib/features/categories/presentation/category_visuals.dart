@@ -27,6 +27,15 @@ const Map<String, IconData> kCategoryIcons = {
   'pets': Icons.pets,
   'attach_money': Icons.attach_money,
   'card_giftcard': Icons.card_giftcard,
+  'movie': Icons.movie,
+  'subscriptions': Icons.subscriptions,
+  'fitness_center': Icons.fitness_center,
+  'local_gas_station': Icons.local_gas_station,
+  'phone_android': Icons.phone_android,
+  'water_drop': Icons.water_drop,
+  'bolt': Icons.bolt,
+  'savings': Icons.savings,
+  'work': Icons.work,
   'category': Icons.category,
 };
 

@@ -3,6 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app/router.dart';
+import 'core/theme/app_colors.dart';
 import 'features/settings/application/settings_controller.dart';
 
 Future<void> main() async {
@@ -26,14 +27,11 @@ class OrcaFacilApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'OrçaFácil',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
+        colorScheme: appLightScheme(),
         useMaterial3: true,
       ),
       darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.teal,
-          brightness: Brightness.dark,
-        ),
+        colorScheme: appDarkScheme(),
         useMaterial3: true,
       ),
       themeMode: settings.themeMode.materialMode,

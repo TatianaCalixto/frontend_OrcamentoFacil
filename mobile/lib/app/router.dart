@@ -6,6 +6,8 @@ import '../features/auth/application/auth_controller.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
 import '../features/auth/presentation/splash_screen.dart';
+import '../features/accounts/presentation/account_form_screen.dart';
+import '../features/accounts/presentation/accounts_screen.dart';
 import '../features/budgets/presentation/budget_form_screen.dart';
 import '../features/budgets/presentation/budgets_screen.dart';
 import '../features/categories/presentation/categories_screen.dart';
@@ -63,6 +65,22 @@ GoRouter buildRouter(Ref ref) {
             return const TransactionFormScreen();
           }
           return TransactionFormScreen(transactionId: id);
+        },
+      ),
+      GoRoute(
+        path: '/accounts',
+        builder: (context, state) => const AccountsScreen(),
+      ),
+      GoRoute(
+        path: '/accounts/new',
+        builder: (context, state) => const AccountFormScreen(),
+      ),
+      GoRoute(
+        path: '/accounts/:id/edit',
+        builder: (context, state) {
+          final id = int.tryParse(state.pathParameters['id'] ?? '');
+          if (id == null) return const AccountFormScreen();
+          return AccountFormScreen(accountId: id);
         },
       ),
       GoRoute(

@@ -3,19 +3,61 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:orcafacil_mobile/features/accounts/data/accounts_api.dart';
 import 'package:orcafacil_mobile/features/dashboard/data/dashboard_api.dart';
 import 'package:orcafacil_mobile/features/dashboard/presentation/dashboard_screen.dart';
 
+import '../accounts/_fakes.dart' as acc_fakes;
 import '_fakes.dart';
+
+acc_fakes.FakeAccountsApi _defaultAccountsApi() {
+  // Default: já tem uma conta — evita disparar o modal de onboarding no
+  // initState dos testes legados que não esperam por ele.
+  return acc_fakes.FakeAccountsApi(
+    listHandler: () async => [acc_fakes.sampleAccount(id: 1, name: 'Conta')],
+  );
+}
 
 Widget _wrap({
   required FakeDashboardApi api,
+  acc_fakes.FakeAccountsApi? accountsApi,
 }) {
   return ProviderScope(
     overrides: [
       dashboardApiProvider.overrideWithValue(api),
+      accountsApiProvider.overrideWithValue(accountsApi ?? _defaultAccountsApi()),
     ],
     child: const MaterialApp(home: DashboardScreen()),
+  );
+}
+
+Widget _wrapWithRouter({
+  required FakeDashboardApi api,
+  acc_fakes.FakeAccountsApi? accountsApi,
+}) {
+  final router = GoRouter(
+    initialLocation: '/',
+    routes: [
+      GoRoute(path: '/', builder: (c, s) => const DashboardScreen()),
+      GoRoute(
+        path: '/transactions/new',
+        builder: (c, s) =>
+            const Scaffold(body: Center(child: Text('NEW_TX_STUB'))),
+      ),
+      GoRoute(
+        path: '/accounts/new',
+        builder: (c, s) =>
+            const Scaffold(body: Center(child: Text('ACC_NEW_STUB'))),
+      ),
+    ],
+  );
+  return ProviderScope(
+    overrides: [
+      dashboardApiProvider.overrideWithValue(api),
+      accountsApiProvider.overrideWithValue(accountsApi ?? _defaultAccountsApi()),
+    ],
+    child: MaterialApp.router(routerConfig: router),
   );
 }
 
@@ -131,6 +173,18 @@ void main() {
       expect(formatBrl(1234.5), 'R\$ 1.234,50');
       expect(formatBrl(0), 'R\$ 0,00');
       expect(formatBrl(-12.3), '-R\$ 12,30');
+    });
+
+    testWidgets('FAB de Nova transação está presente e navega para /transactions/new',
+        (tester) async {
+      final api = FakeDashboardApi();
+      await tester.pumpWidget(_wrapWithRouter(api: api));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('btn-dashboard-new-tx')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('btn-dashboard-new-tx')));
+      await tester.pumpAndSettle();
+      expect(find.text('NEW_TX_STUB'), findsOneWidget);
     });
   });
 }

@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:orcafacil_mobile/features/accounts/data/accounts_api.dart';
 import 'package:orcafacil_mobile/features/transactions/data/transaction_models.dart';
 import 'package:orcafacil_mobile/features/transactions/data/transactions_api.dart';
 import 'package:orcafacil_mobile/features/transactions/presentation/transaction_form_screen.dart';
 
+import '../accounts/_fakes.dart' as acc_fakes;
 import '_fakes.dart';
 
 GoRouter _router(Widget child) {
@@ -22,9 +24,25 @@ GoRouter _router(Widget child) {
   );
 }
 
-Widget _wrap(FakeTransactionsApi api, Widget child) {
+Widget _wrap(
+  FakeTransactionsApi api,
+  Widget child, {
+  acc_fakes.FakeAccountsApi? accountsApi,
+}) {
   return ProviderScope(
-    overrides: [transactionsApiProvider.overrideWithValue(api)],
+    overrides: [
+      transactionsApiProvider.overrideWithValue(api),
+      accountsApiProvider.overrideWithValue(
+        accountsApi ??
+            acc_fakes.FakeAccountsApi(
+              getHandler: (id) async => acc_fakes.sampleAccount(
+                id: id,
+                name: 'Conta Teste',
+                currentBalance: 1500.50,
+              ),
+            ),
+      ),
+    ],
     child: MaterialApp.router(routerConfig: _router(child)),
   );
 }
@@ -198,6 +216,104 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('não encontrado'), findsOneWidget);
+    });
+  });
+
+  group('TransactionFormScreen — snackbar de saldo (S19-T06)', () {
+    testWidgets('após criar com sucesso, snackbar mostra saldo da conta em BRL',
+        (tester) async {
+      final txApi = FakeTransactionsApi();
+      final accApi = acc_fakes.FakeAccountsApi(
+        getHandler: (id) async => acc_fakes.sampleAccount(
+          id: id,
+          name: 'Nubank',
+          currentBalance: 1876.42,
+        ),
+      );
+      await tester.pumpWidget(
+        _wrap(txApi, const TransactionFormScreen(), accountsApi: accApi),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byKey(const Key('field-amount')), '25');
+      await tester.tap(find.byKey(const Key('field-account')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Conta principal').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('field-category')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Alimentação').last);
+      await tester.pumpAndSettle();
+
+      await _tapSubmit(tester);
+      await tester.pumpAndSettle();
+
+      // Snackbar com saldo formatado BRL aparece (MaterialApp.router mantém
+      // ScaffoldMessenger root — snackbar sobrevive ao context.go).
+      expect(
+        find.text('Transação salva. Saldo de Nubank: R\$ 1.876,42'),
+        findsOneWidget,
+      );
+      expect(accApi.getCalls, contains(1));
+    });
+
+    testWidgets('após editar com sucesso, snackbar mostra saldo da conta',
+        (tester) async {
+      final txApi = FakeTransactionsApi(
+        getByIdHandler: (id) async => sampleTransaction(id: id, amount: 30),
+      );
+      final accApi = acc_fakes.FakeAccountsApi(
+        getHandler: (id) async => acc_fakes.sampleAccount(
+          id: id,
+          name: 'Carteira',
+          currentBalance: 99.90,
+        ),
+      );
+      await tester.pumpWidget(
+        _wrap(
+          txApi,
+          const TransactionFormScreen(transactionId: 11),
+          accountsApi: accApi,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await _tapSubmit(tester);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Transação salva. Saldo de Carteira: R\$ 99,90'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('se GET /accounts/{id} falhar, cai para snackbar genérico',
+        (tester) async {
+      final txApi = FakeTransactionsApi();
+      final accApi = acc_fakes.FakeAccountsApi(
+        getHandler: (id) async {
+          throw AccountsApiException('erro de rede', statusCode: 500);
+        },
+      );
+      await tester.pumpWidget(
+        _wrap(txApi, const TransactionFormScreen(), accountsApi: accApi),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byKey(const Key('field-amount')), '10');
+      await tester.tap(find.byKey(const Key('field-account')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Conta principal').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('field-category')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Alimentação').last);
+      await tester.pumpAndSettle();
+
+      await _tapSubmit(tester);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Transação criada.'), findsOneWidget);
     });
   });
 }

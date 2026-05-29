@@ -1,10 +1,15 @@
+import 'dart:async';
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/theme/app_colors.dart';
+import '../../accounts/application/accounts_controller.dart';
 import '../../auth/application/auth_controller.dart';
 import '../application/dashboard_controller.dart';
+import 'app_drawer.dart';
 import '../data/dashboard_api.dart';
 import '../data/dashboard_repository.dart';
 
@@ -18,14 +23,68 @@ class DashboardScreen extends ConsumerStatefulWidget {
 }
 
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  bool _onboardingShown = false;
+
   @override
   void initState() {
     super.initState();
     // Carrega o dashboard logo após o primeiro frame para evitar mexer no
     // estado durante o build.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(dashboardControllerProvider.notifier).load();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      unawaited(ref.read(dashboardControllerProvider.notifier).load());
+      // Verifica se o usuário tem ao menos 1 conta cadastrada — se não tiver,
+      // dispara o onboarding "Crie sua primeira conta". Só uma vez por sessão
+      // da tela; se o usuário pular e voltar, vê de novo (intencional).
+      await ref.read(accountsControllerProvider.notifier).refresh();
+      if (!mounted || _onboardingShown) return;
+      final accSt = ref.read(accountsControllerProvider);
+      if (!accSt.hasError && accSt.items.isEmpty) {
+        _onboardingShown = true;
+        unawaited(_showCreateAccountOnboarding());
+      }
     });
+  }
+
+  Future<void> _showCreateAccountOnboarding() async {
+    final action = await showDialog<_OnboardingAction>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        key: const Key('onboarding-create-account'),
+        title: const Text('Crie sua primeira conta'),
+        content: const Text(
+          'Para começar a registrar suas receitas e despesas, você precisa '
+          'primeiro cadastrar uma conta (corrente, poupança, dinheiro ou cartão). '
+          'Sem conta não é possível lançar transações.',
+        ),
+        actions: [
+          TextButton(
+            key: const Key('onboarding-skip'),
+            onPressed: () =>
+                Navigator.of(ctx).pop(_OnboardingAction.skip),
+            child: const Text('Pular por agora'),
+          ),
+          FilledButton(
+            key: const Key('onboarding-create'),
+            onPressed: () =>
+                Navigator.of(ctx).pop(_OnboardingAction.create),
+            child: const Text('Criar conta'),
+          ),
+        ],
+      ),
+    );
+    if (!mounted) return;
+    if (action == _OnboardingAction.create) {
+      context.go('/accounts/new');
+    } else if (action == _OnboardingAction.skip) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Sem conta você não consegue lançar transações.',
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -52,66 +111,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ),
         ],
       ),
-      drawer: Drawer(
-        child: SafeArea(
-          child: ListView(
-            children: [
-              const DrawerHeader(
-                child: Text(
-                  'OrçaFácil',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-              ),
-              ListTile(
-                leading: const Icon(Icons.dashboard),
-                title: const Text('Dashboard'),
-                onTap: () => context.go('/dashboard'),
-              ),
-              ListTile(
-                leading: const Icon(Icons.list_alt),
-                title: const Text('Transações'),
-                onTap: () => context.go('/transactions'),
-              ),
-              ListTile(
-                key: const Key('drawer-categories'),
-                leading: const Icon(Icons.category),
-                title: const Text('Categorias'),
-                onTap: () => context.go('/categories'),
-              ),
-              ListTile(
-                key: const Key('drawer-budgets'),
-                leading: const Icon(Icons.account_balance_wallet),
-                title: const Text('Orçamentos'),
-                onTap: () => context.go('/budgets'),
-              ),
-              ListTile(
-                key: const Key('drawer-goals'),
-                leading: const Icon(Icons.flag),
-                title: const Text('Metas'),
-                onTap: () => context.go('/goals'),
-              ),
-              const Divider(),
-              ListTile(
-                key: const Key('drawer-profile'),
-                leading: const Icon(Icons.person),
-                title: const Text('Perfil'),
-                onTap: () => context.go('/profile'),
-              ),
-              ListTile(
-                key: const Key('drawer-settings'),
-                leading: const Icon(Icons.settings),
-                title: const Text('Configurações'),
-                onTap: () => context.go('/settings'),
-              ),
-              ListTile(
-                key: const Key('drawer-import-csv'),
-                leading: const Icon(Icons.upload_file),
-                title: const Text('Importar CSV'),
-                onTap: () => context.go('/imports/csv'),
-              ),
-            ],
-          ),
-        ),
+      floatingActionButton: FloatingActionButton(
+        key: const Key('btn-dashboard-new-tx'),
+        onPressed: () => context.go('/transactions/new'),
+        tooltip: 'Nova transação',
+        child: const Icon(Icons.add),
+      ),
+      drawer: AppNavigationDrawer(
+        currentLocation: _currentLocation(context),
       ),
       body: SafeArea(
         child: RefreshIndicator(
@@ -249,7 +256,7 @@ class _SummaryCards extends StatelessWidget {
                 key: const Key('card-saldo-total'),
                 title: 'Saldo total',
                 value: summary.saldoTotalContas,
-                color: Colors.blueGrey,
+                color: AppColors.neutral,
                 icon: Icons.account_balance_wallet,
               ),
             ),
@@ -259,7 +266,7 @@ class _SummaryCards extends StatelessWidget {
                 key: const Key('card-saldo-mes'),
                 title: 'Saldo do mês',
                 value: summary.saldo,
-                color: summary.saldo >= 0 ? Colors.teal : Colors.red,
+                color: summary.saldo >= 0 ? AppColors.info : AppColors.danger,
                 icon: Icons.savings,
               ),
             ),
@@ -273,7 +280,7 @@ class _SummaryCards extends StatelessWidget {
                 key: const Key('card-receita'),
                 title: 'Receita do mês',
                 value: summary.receitaTotal,
-                color: Colors.green,
+                color: AppColors.success,
                 icon: Icons.trending_up,
               ),
             ),
@@ -283,7 +290,7 @@ class _SummaryCards extends StatelessWidget {
                 key: const Key('card-despesa'),
                 title: 'Despesa do mês',
                 value: summary.despesaTotal,
-                color: Colors.red,
+                color: AppColors.danger,
                 icon: Icons.trending_down,
               ),
             ),
@@ -445,6 +452,16 @@ Color _parseColor(String? raw) {
   final intColor = int.tryParse(hex, radix: 16);
   if (intColor == null) return Colors.grey;
   return Color(intColor);
+}
+
+enum _OnboardingAction { create, skip }
+
+/// Resolve a rota atual via GoRouter quando disponível; caso contrário
+/// devolve `/dashboard` (situação dos widget tests legados sem router).
+String _currentLocation(BuildContext context) {
+  final router = GoRouter.maybeOf(context);
+  if (router == null) return '/dashboard';
+  return router.routeInformationProvider.value.uri.path;
 }
 
 /// Formata um valor monetário em BRL (R$ 1.234,56).

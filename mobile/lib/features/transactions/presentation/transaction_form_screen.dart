@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../accounts/data/accounts_api.dart';
+import '../../dashboard/presentation/dashboard_screen.dart' show formatBrl;
 import '../application/transactions_controller.dart';
 import '../data/transaction_models.dart';
 import '../data/transactions_api.dart';
@@ -153,12 +155,23 @@ class _TransactionFormScreenState
       }
       // Atualiza a lista para refletir a nova/editada transação.
       await ref.read(transactionsControllerProvider.notifier).refresh();
+      // Busca o saldo atual da conta afetada para mostrar no snackbar.
+      // Se falhar, cai para a mensagem genérica (não bloqueia o fluxo).
+      String snackText = widget.mode == TransactionFormMode.create
+          ? 'Transação criada.'
+          : 'Transação atualizada.';
+      try {
+        final acc = await ref.read(accountsApiProvider).get(_accountId!);
+        snackText = 'Transação salva. Saldo de ${acc.name}: '
+            '${formatBrl(acc.currentBalance)}';
+      } on AccountsApiException {
+        // mantém snackText genérico
+      }
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(widget.mode == TransactionFormMode.create
-              ? 'Transação criada.'
-              : 'Transação atualizada.'),
+          key: const Key('tx-balance-snackbar'),
+          content: Text(snackText),
         ),
       );
       context.go('/transactions');

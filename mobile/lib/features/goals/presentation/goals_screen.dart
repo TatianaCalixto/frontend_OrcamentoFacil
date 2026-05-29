@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/theme/app_colors.dart';
 import '../../dashboard/presentation/dashboard_screen.dart' show formatBrl;
 import '../application/goals_controller.dart';
 import '../data/goal_models.dart';
@@ -194,7 +195,7 @@ class GoalCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final completed = goal.status == GoalStatus.completed;
-    final color = completed ? Colors.green : Theme.of(context).colorScheme.primary;
+    final color = completed ? AppColors.success : Theme.of(context).colorScheme.primary;
     return Card(
       key: Key('goal-card-${goal.id}'),
       child: Padding(
@@ -215,18 +216,18 @@ class GoalCard extends StatelessWidget {
                     key: const Key('goal-badge-completed'),
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.green.withValues(alpha: 0.15),
+                      color: AppColors.success.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.check_circle, color: Colors.green, size: 14),
+                        Icon(Icons.check_circle, color: AppColors.success, size: 14),
                         SizedBox(width: 4),
                         Text(
                           'Concluída',
                           style: TextStyle(
-                            color: Colors.green,
+                            color: AppColors.success,
                             fontWeight: FontWeight.bold,
                             fontSize: 12,
                           ),

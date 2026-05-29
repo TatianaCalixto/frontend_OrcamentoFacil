@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/theme/app_colors.dart';
 import '../../categories/application/categories_controller.dart';
 import '../../categories/data/category_models.dart';
 import '../../dashboard/presentation/dashboard_screen.dart' show formatBrl;
@@ -266,9 +267,9 @@ class BudgetCard extends StatelessWidget {
 }
 
 Color _statusColor(BudgetStatus s) => switch (s) {
-      BudgetStatus.ok => Colors.green,
-      BudgetStatus.warning => Colors.orange,
-      BudgetStatus.critical => Colors.red,
+      BudgetStatus.ok => AppColors.success,
+      BudgetStatus.warning => AppColors.warning,
+      BudgetStatus.critical => AppColors.danger,
     };
 
 class _StatusChip extends StatelessWidget {
