@@ -78,3 +78,6 @@ Thumbs.db
 # ===== Logs =====
 *.log
 logs/
+
+# ===== Ferramentas do agente (Claude Code) =====
+.claude/
