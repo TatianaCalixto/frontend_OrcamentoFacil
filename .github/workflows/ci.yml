@@ -29,6 +29,11 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      # .env e gitignored (segredo); o pubspec declara como asset, entao no CI
+      # criamos a partir do exemplo para analyze/test/build encontrarem o asset.
+      - name: Prepare .env (from example)
+        run: cp .env.example .env
+
       - name: Analyze (gate)
         run: flutter analyze
 
