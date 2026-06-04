@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../shared/widgets/async_view.dart';
 import '../../dashboard/presentation/dashboard_screen.dart' show formatBrl;
 import '../application/transactions_controller.dart';
 import '../data/transaction_models.dart';
@@ -149,13 +150,23 @@ class _TransactionsListScreenState
 
   Widget _body(TransactionsState state) {
     if (state.isLoading && state.items.isEmpty) {
-      return const _LoadingList();
+      return const LoadingView(key: Key('transactions-loading'), scrollable: true);
     }
     if (state.hasError && state.items.isEmpty) {
-      return _ErrorList(message: state.errorMessage!);
+      return ErrorView(
+        key: const Key('transactions-error'),
+        message: state.errorMessage!,
+        scrollable: true,
+        onRetry: () => ref.read(transactionsControllerProvider.notifier).refresh(),
+      );
     }
     if (state.isEmpty) {
-      return const _EmptyList();
+      return const EmptyView(
+        key: Key('transactions-empty'),
+        message: 'Nenhuma transação encontrada.',
+        icon: Icons.receipt_long_outlined,
+        scrollable: true,
+      );
     }
     return ListView.separated(
       key: const Key('transactions-list'),
@@ -261,80 +272,6 @@ class _TransactionTile extends ConsumerWidget {
         style: TextStyle(color: color, fontWeight: FontWeight.bold),
       ),
       onTap: () => context.go('/transactions/${transaction.id}/edit'),
-    );
-  }
-}
-
-class _LoadingList extends StatelessWidget {
-  const _LoadingList();
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      key: const Key('transactions-loading'),
-      physics: const AlwaysScrollableScrollPhysics(),
-      children: const [
-        SizedBox(height: 120),
-        Center(child: CircularProgressIndicator()),
-      ],
-    );
-  }
-}
-
-class _EmptyList extends StatelessWidget {
-  const _EmptyList();
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      key: const Key('transactions-empty'),
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(24),
-      children: [
-        const SizedBox(height: 120),
-        Icon(
-          Icons.receipt_long_outlined,
-          size: 56,
-          color: Theme.of(context).colorScheme.outline,
-        ),
-        const SizedBox(height: 12),
-        const Text(
-          'Nenhuma transação encontrada.',
-          textAlign: TextAlign.center,
-        ),
-      ],
-    );
-  }
-}
-
-class _ErrorList extends ConsumerWidget {
-  const _ErrorList({required this.message});
-  final String message;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return ListView(
-      key: const Key('transactions-error'),
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(24),
-      children: [
-        const SizedBox(height: 120),
-        Icon(
-          Icons.error_outline,
-          size: 48,
-          color: Theme.of(context).colorScheme.error,
-        ),
-        const SizedBox(height: 16),
-        Text(message, textAlign: TextAlign.center),
-        const SizedBox(height: 16),
-        Center(
-          child: FilledButton.icon(
-            onPressed: () => ref
-                .read(transactionsControllerProvider.notifier)
-                .refresh(),
-            icon: const Icon(Icons.refresh),
-            label: const Text('Tentar novamente'),
-          ),
-        ),
-      ],
     );
   }
 }

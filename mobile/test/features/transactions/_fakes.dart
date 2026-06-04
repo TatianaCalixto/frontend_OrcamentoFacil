@@ -174,14 +174,14 @@ class FakeTransactionsApi implements TransactionsApi {
   @override
   Future<List<Account>> listAccounts() {
     if (accountsHandler != null) return accountsHandler!();
-    return Future.value([Account(id: 1, name: 'Conta principal')]);
+    return Future.value([const Account(id: 1, name: 'Conta principal')]);
   }
 
   @override
   Future<List<Category>> listCategories() {
     if (categoriesHandler != null) return categoriesHandler!();
     return Future.value([
-      Category(id: 1, name: 'Alimentação', type: TransactionType.expense),
+      const Category(id: 1, name: 'Alimentação', type: TransactionType.expense),
     ]);
   }
 }

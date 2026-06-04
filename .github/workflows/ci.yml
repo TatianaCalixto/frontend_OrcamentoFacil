@@ -29,6 +29,13 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      # Code generation (freezed/json_serializable) — S25-T01. Arquivos
+      # *.freezed.dart/*.g.dart sao gitignored e gerados aqui antes do analyze/test.
+      # Obs.: --delete-conflicting-outputs foi removido no build_runner 2.15 (passou
+      # a ser o comportamento padrao); por isso usamos apenas `build`.
+      - name: Code generation (build_runner)
+        run: dart run build_runner build
+
       # .env e gitignored (segredo); o pubspec declara como asset, entao no CI
       # criamos a partir do exemplo para analyze/test/build encontrarem o asset.
       - name: Prepare .env (from example)
@@ -43,12 +50,17 @@ jobs:
       - name: Coverage gate (>= 70%)
         run: |
           python3 - <<'EOF'
+          # Exclui arquivos gerados (freezed/json_serializable) da cobertura — S25-T01.
           lines = hits = 0
+          skip = False
           with open("coverage/lcov.info", encoding="utf-8") as fh:
               for line in fh:
-                  if line.startswith("LF:"):
+                  if line.startswith("SF:"):
+                      sf = line[3:].strip()
+                      skip = sf.endswith(".g.dart") or sf.endswith(".freezed.dart")
+                  elif line.startswith("LF:") and not skip:
                       lines += int(line[3:])
-                  elif line.startswith("LH:"):
+                  elif line.startswith("LH:") and not skip:
                       hits += int(line[3:])
           pct = (100 * hits / lines) if lines else 0.0
           print(f"Cobertura: {hits}/{lines} = {pct:.1f}%")
@@ -83,6 +95,10 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
+
+      # Code generation antes do build (necessario quando ha modelos freezed) — S25-T01.
+      - name: Code generation (build_runner)
+        run: dart run build_runner build
 
       - name: Prepare .env (from example)
         run: cp .env.example .env

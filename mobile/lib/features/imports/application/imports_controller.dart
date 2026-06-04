@@ -1,50 +1,31 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../data/import_models.dart';
 import '../data/imports_api.dart';
 import 'csv_file_picker.dart';
 
+part 'imports_controller.freezed.dart';
+
 /// Tamanho máximo aceito (2MB) — mesmo limite do backend.
 const int kMaxCsvBytes = 2 * 1024 * 1024;
 
-class ImportState {
-  const ImportState({
-    this.picked,
-    this.accountId,
-    this.result,
-    this.isUploading = false,
-    this.errorMessage,
-  });
+@freezed
+abstract class ImportState with _$ImportState {
+  const ImportState._();
 
-  final PickedCsv? picked;
-  final int? accountId;
-  final CsvImportResult? result;
-  final bool isUploading;
-  final String? errorMessage;
+  const factory ImportState({
+    PickedCsv? picked,
+    int? accountId,
+    CsvImportResult? result,
+    @Default(false) bool isUploading,
+    String? errorMessage,
+  }) = _ImportState;
 
   bool get canSubmit =>
       picked != null && accountId != null && !isUploading && _sizeOk;
   bool get _sizeOk => picked == null || picked!.sizeBytes <= kMaxCsvBytes;
   bool get isTooLarge => picked != null && picked!.sizeBytes > kMaxCsvBytes;
-
-  ImportState copyWith({
-    PickedCsv? picked,
-    int? accountId,
-    CsvImportResult? result,
-    bool? isUploading,
-    String? errorMessage,
-    bool clearError = false,
-    bool clearResult = false,
-    bool clearPicked = false,
-  }) {
-    return ImportState(
-      picked: clearPicked ? null : (picked ?? this.picked),
-      accountId: accountId ?? this.accountId,
-      result: clearResult ? null : (result ?? this.result),
-      isUploading: isUploading ?? this.isUploading,
-      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
-    );
-  }
 }
 
 class ImportsController extends Notifier<ImportState> {
@@ -59,20 +40,20 @@ class ImportsController extends Notifier<ImportState> {
     if (!lower.endsWith('.csv')) {
       state = state.copyWith(
         errorMessage: 'Selecione um arquivo .csv.',
-        clearPicked: true,
-        clearResult: true,
+        picked: null,
+        result: null,
       );
       return;
     }
     state = state.copyWith(
       picked: picked,
-      clearError: true,
-      clearResult: true,
+      errorMessage: null,
+      result: null,
     );
   }
 
   void selectAccount(int accountId) {
-    state = state.copyWith(accountId: accountId, clearError: true);
+    state = state.copyWith(accountId: accountId, errorMessage: null);
   }
 
   Future<void> submit() async {
@@ -85,7 +66,7 @@ class ImportsController extends Notifier<ImportState> {
       );
       return;
     }
-    state = state.copyWith(isUploading: true, clearError: true, clearResult: true);
+    state = state.copyWith(isUploading: true, errorMessage: null, result: null);
     try {
       final api = ref.read(importsApiProvider);
       final res = await api.uploadCsv(

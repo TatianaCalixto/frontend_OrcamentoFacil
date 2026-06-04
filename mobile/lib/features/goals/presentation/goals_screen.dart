@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../shared/widgets/async_view.dart';
 import '../../dashboard/presentation/dashboard_screen.dart' show formatBrl;
 import '../application/goals_controller.dart';
 import '../data/goal_models.dart';
@@ -104,59 +105,22 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
 
   Widget _body(GoalsState state) {
     if (state.isLoading && state.items.isEmpty) {
-      return ListView(
-        key: const Key('goal-loading'),
-        physics: const AlwaysScrollableScrollPhysics(),
-        children: const [
-          SizedBox(height: 200),
-          Center(child: CircularProgressIndicator()),
-        ],
-      );
+      return const LoadingView(key: Key('goal-loading'), scrollable: true);
     }
     if (state.hasError && state.items.isEmpty) {
-      return ListView(
+      return ErrorView(
         key: const Key('goal-error'),
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(24),
-        children: [
-          const SizedBox(height: 120),
-          Icon(
-            Icons.error_outline,
-            size: 48,
-            color: Theme.of(context).colorScheme.error,
-          ),
-          const SizedBox(height: 16),
-          Text(state.errorMessage!, textAlign: TextAlign.center),
-          const SizedBox(height: 16),
-          Center(
-            child: FilledButton.icon(
-              onPressed: () =>
-                  ref.read(goalsControllerProvider.notifier).refresh(),
-              icon: const Icon(Icons.refresh),
-              label: const Text('Tentar novamente'),
-            ),
-          ),
-        ],
+        message: state.errorMessage!,
+        scrollable: true,
+        onRetry: () => ref.read(goalsControllerProvider.notifier).refresh(),
       );
     }
     if (state.isEmpty) {
-      return ListView(
-        key: const Key('goal-empty'),
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(24),
-        children: [
-          const SizedBox(height: 120),
-          Icon(
-            Icons.flag_outlined,
-            size: 56,
-            color: Theme.of(context).colorScheme.outline,
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            'Sem metas cadastradas.',
-            textAlign: TextAlign.center,
-          ),
-        ],
+      return const EmptyView(
+        key: Key('goal-empty'),
+        message: 'Sem metas cadastradas.',
+        icon: Icons.flag_outlined,
+        scrollable: true,
       );
     }
     return ListView.separated(

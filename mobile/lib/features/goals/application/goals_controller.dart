@@ -1,37 +1,26 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../data/goal_models.dart';
 import '../data/goals_api.dart';
 
-class GoalsState {
-  const GoalsState({
-    required this.items,
-    required this.isLoading,
-    this.errorMessage,
-  });
+part 'goals_controller.freezed.dart';
+
+@freezed
+abstract class GoalsState with _$GoalsState {
+  const GoalsState._();
+
+  const factory GoalsState({
+    required List<Goal> items,
+    required bool isLoading,
+    String? errorMessage,
+  }) = _GoalsState;
 
   factory GoalsState.initial() =>
       const GoalsState(items: [], isLoading: false);
 
-  final List<Goal> items;
-  final bool isLoading;
-  final String? errorMessage;
-
   bool get isEmpty => !isLoading && items.isEmpty && errorMessage == null;
   bool get hasError => errorMessage != null;
-
-  GoalsState copyWith({
-    List<Goal>? items,
-    bool? isLoading,
-    String? errorMessage,
-    bool clearError = false,
-  }) {
-    return GoalsState(
-      items: items ?? this.items,
-      isLoading: isLoading ?? this.isLoading,
-      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
-    );
-  }
 }
 
 class GoalsController extends Notifier<GoalsState> {
@@ -41,7 +30,7 @@ class GoalsController extends Notifier<GoalsState> {
   GoalsApi get _api => ref.read(goalsApiProvider);
 
   Future<void> refresh() async {
-    state = state.copyWith(isLoading: true, clearError: true);
+    state = state.copyWith(isLoading: true, errorMessage: null);
     try {
       final items = await _api.list();
       state = state.copyWith(items: items, isLoading: false);

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../shared/widgets/async_view.dart';
 import '../../transactions/data/transaction_models.dart';
 import '../application/categories_controller.dart';
 import '../data/categories_api.dart';
@@ -88,60 +89,23 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
 
   Widget _body(CategoriesState state) {
     if (state.isLoading && state.items.isEmpty) {
-      return ListView(
-        key: const Key('cat-loading'),
-        physics: const AlwaysScrollableScrollPhysics(),
-        children: const [
-          SizedBox(height: 200),
-          Center(child: CircularProgressIndicator()),
-        ],
-      );
+      return const LoadingView(key: Key('cat-loading'), scrollable: true);
     }
     if (state.hasError && state.items.isEmpty) {
-      return ListView(
+      return ErrorView(
         key: const Key('cat-error'),
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(24),
-        children: [
-          const SizedBox(height: 120),
-          Icon(
-            Icons.error_outline,
-            size: 48,
-            color: Theme.of(context).colorScheme.error,
-          ),
-          const SizedBox(height: 16),
-          Text(state.errorMessage!, textAlign: TextAlign.center),
-          const SizedBox(height: 16),
-          Center(
-            child: FilledButton.icon(
-              onPressed: () => ref
-                  .read(categoriesControllerProvider.notifier)
-                  .refresh(),
-              icon: const Icon(Icons.refresh),
-              label: const Text('Tentar novamente'),
-            ),
-          ),
-        ],
+        message: state.errorMessage!,
+        scrollable: true,
+        onRetry: () =>
+            ref.read(categoriesControllerProvider.notifier).refresh(),
       );
     }
     if (state.isEmpty) {
-      return ListView(
-        key: const Key('cat-empty'),
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(24),
-        children: [
-          const SizedBox(height: 120),
-          Icon(
-            Icons.category_outlined,
-            size: 56,
-            color: Theme.of(context).colorScheme.outline,
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            'Nenhuma categoria cadastrada.',
-            textAlign: TextAlign.center,
-          ),
-        ],
+      return const EmptyView(
+        key: Key('cat-empty'),
+        message: 'Nenhuma categoria cadastrada.',
+        icon: Icons.category_outlined,
+        scrollable: true,
       );
     }
     // Agrupa por tipo para facilitar leitura.

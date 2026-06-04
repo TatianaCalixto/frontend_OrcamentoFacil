@@ -39,8 +39,8 @@ Widget _wrap({
   final fakeTxApi = txApi ??
       tx_fakes.FakeTransactionsApi(
         accountsHandler: () async => [
-          Account(id: 1, name: 'Conta principal'),
-          Account(id: 2, name: 'Poupança'),
+          const Account(id: 1, name: 'Conta principal'),
+          const Account(id: 2, name: 'Poupança'),
         ],
       );
   return ProviderScope(

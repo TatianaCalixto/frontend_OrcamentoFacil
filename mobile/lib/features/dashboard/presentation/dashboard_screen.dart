@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../shared/widgets/async_view.dart';
 import '../../accounts/application/accounts_controller.dart';
 import '../../auth/application/auth_controller.dart';
 import '../application/dashboard_controller.dart';
@@ -131,77 +132,27 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 }
 
-class _DashboardBody extends StatelessWidget {
+class _DashboardBody extends ConsumerWidget {
   const _DashboardBody({required this.state, required this.userName});
 
   final DashboardState state;
   final String userName;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (state is DashboardInitial || state is DashboardLoading) {
-      return const _LoadingView();
+      return const LoadingView(key: Key('dashboard-loading'), scrollable: true);
     }
     if (state is DashboardError) {
-      return _ErrorView(message: (state as DashboardError).message);
+      return ErrorView(
+        key: const Key('dashboard-error'),
+        message: (state as DashboardError).message,
+        scrollable: true,
+        onRetry: () => ref.read(dashboardControllerProvider.notifier).refresh(),
+      );
     }
     final loaded = state as DashboardLoaded;
     return _LoadedView(data: loaded.data, userName: userName);
-  }
-}
-
-class _LoadingView extends StatelessWidget {
-  const _LoadingView();
-
-  @override
-  Widget build(BuildContext context) {
-    // ListView para permitir pull-to-refresh mesmo durante loading.
-    return ListView(
-      key: const Key('dashboard-loading'),
-      physics: const AlwaysScrollableScrollPhysics(),
-      children: const [
-        SizedBox(height: 200),
-        Center(child: CircularProgressIndicator()),
-      ],
-    );
-  }
-}
-
-class _ErrorView extends ConsumerWidget {
-  const _ErrorView({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return ListView(
-      key: const Key('dashboard-error'),
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(24),
-      children: [
-        const SizedBox(height: 120),
-        Icon(
-          Icons.error_outline,
-          size: 48,
-          color: Theme.of(context).colorScheme.error,
-        ),
-        const SizedBox(height: 16),
-        Text(
-          message,
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.bodyLarge,
-        ),
-        const SizedBox(height: 16),
-        Center(
-          child: FilledButton.icon(
-            onPressed: () =>
-                ref.read(dashboardControllerProvider.notifier).refresh(),
-            icon: const Icon(Icons.refresh),
-            label: const Text('Tentar novamente'),
-          ),
-        ),
-      ],
-    );
   }
 }
 

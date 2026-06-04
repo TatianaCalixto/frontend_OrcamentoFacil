@@ -33,6 +33,10 @@ migrate_working_dir/
 /build/
 /coverage/
 
+# Arquivos gerados por build_runner (freezed/json_serializable) — gerados no CI (S25-T01)
+*.freezed.dart
+*.g.dart
+
 # Symbolication related
 app.*.symbols
 

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../shared/widgets/async_view.dart';
 import '../../categories/application/categories_controller.dart';
 import '../../categories/data/category_models.dart';
 import '../../dashboard/presentation/dashboard_screen.dart' show formatBrl;
@@ -101,59 +102,22 @@ class _BudgetsScreenState extends ConsumerState<BudgetsScreen> {
 
   Widget _body(BudgetsState state, List<CategoryFull> categories) {
     if (state.isLoading && state.items.isEmpty) {
-      return ListView(
-        key: const Key('budget-loading'),
-        physics: const AlwaysScrollableScrollPhysics(),
-        children: const [
-          SizedBox(height: 200),
-          Center(child: CircularProgressIndicator()),
-        ],
-      );
+      return const LoadingView(key: Key('budget-loading'), scrollable: true);
     }
     if (state.hasError && state.items.isEmpty) {
-      return ListView(
+      return ErrorView(
         key: const Key('budget-error'),
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(24),
-        children: [
-          const SizedBox(height: 120),
-          Icon(
-            Icons.error_outline,
-            size: 48,
-            color: Theme.of(context).colorScheme.error,
-          ),
-          const SizedBox(height: 16),
-          Text(state.errorMessage!, textAlign: TextAlign.center),
-          const SizedBox(height: 16),
-          Center(
-            child: FilledButton.icon(
-              onPressed: () =>
-                  ref.read(budgetsControllerProvider.notifier).refresh(),
-              icon: const Icon(Icons.refresh),
-              label: const Text('Tentar novamente'),
-            ),
-          ),
-        ],
+        message: state.errorMessage!,
+        scrollable: true,
+        onRetry: () => ref.read(budgetsControllerProvider.notifier).refresh(),
       );
     }
     if (state.isEmpty) {
-      return ListView(
-        key: const Key('budget-empty'),
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(24),
-        children: [
-          const SizedBox(height: 120),
-          Icon(
-            Icons.account_balance_wallet_outlined,
-            size: 56,
-            color: Theme.of(context).colorScheme.outline,
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            'Sem orçamentos cadastrados para o período.',
-            textAlign: TextAlign.center,
-          ),
-        ],
+      return const EmptyView(
+        key: Key('budget-empty'),
+        message: 'Sem orçamentos cadastrados para o período.',
+        icon: Icons.account_balance_wallet_outlined,
+        scrollable: true,
       );
     }
     return ListView.separated(

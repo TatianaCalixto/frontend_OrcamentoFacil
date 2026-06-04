@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'settings_controller.freezed.dart';
 
 /// Modo de tema persistente.
 enum AppThemeMode { system, light, dark }
@@ -20,21 +23,12 @@ extension AppThemeModeX on AppThemeMode {
 }
 
 /// Estado das preferências do app.
-class SettingsState {
-  const SettingsState({
-    this.themeMode = AppThemeMode.system,
-    this.language = 'pt-BR',
-  });
-
-  final AppThemeMode themeMode;
-  final String language;
-
-  SettingsState copyWith({AppThemeMode? themeMode, String? language}) {
-    return SettingsState(
-      themeMode: themeMode ?? this.themeMode,
-      language: language ?? this.language,
-    );
-  }
+@freezed
+abstract class SettingsState with _$SettingsState {
+  const factory SettingsState({
+    @Default(AppThemeMode.system) AppThemeMode themeMode,
+    @Default('pt-BR') String language,
+  }) = _SettingsState;
 }
 
 /// Storage abstrato de preferências (key/value). Implementação padrão usa

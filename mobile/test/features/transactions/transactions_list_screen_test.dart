@@ -94,8 +94,8 @@ void main() {
       await tester.pump(); // dispara postFrameCallback -> refresh -> loading
 
       expect(find.byKey(const Key('transactions-loading')), findsOneWidget);
-      completer.complete(TransactionPage(
-        items: const [],
+      completer.complete(const TransactionPage(
+        items: [],
         total: 0,
         page: 1,
         pageSize: 20,

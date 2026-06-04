@@ -1,5 +1,19 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../../../core/json/converters.dart';
+
+part 'budget_models.freezed.dart';
+part 'budget_models.g.dart';
+
 /// Status do orçamento conforme `BudgetWithUsage`.
-enum BudgetStatus { ok, warning, critical }
+enum BudgetStatus {
+  @JsonValue('ok')
+  ok,
+  @JsonValue('warning')
+  warning,
+  @JsonValue('critical')
+  critical,
+}
 
 extension BudgetStatusX on BudgetStatus {
   String get apiValue => switch (this) {
@@ -23,77 +37,34 @@ extension BudgetStatusX on BudgetStatus {
 }
 
 /// Orçamento com uso (`BudgetWithUsage` do backend).
-class BudgetWithUsage {
-  BudgetWithUsage({
-    required this.id,
-    required this.userId,
-    required this.categoryId,
-    required this.month,
-    required this.year,
-    required this.limitAmount,
-    required this.usedAmount,
-    required this.percentUsed,
-    required this.status,
-  });
+@freezed
+abstract class BudgetWithUsage with _$BudgetWithUsage {
+  const factory BudgetWithUsage({
+    required int id,
+    required int userId,
+    required int categoryId,
+    required int month,
+    required int year,
+    @DecimalToDoubleConverter() required double limitAmount,
+    @DecimalToDoubleConverter() required double usedAmount,
+    @DecimalToDoubleConverter() required double percentUsed,
+    @JsonKey(unknownEnumValue: BudgetStatus.ok) required BudgetStatus status,
+  }) = _BudgetWithUsage;
 
-  factory BudgetWithUsage.fromJson(Map<String, dynamic> json) {
-    return BudgetWithUsage(
-      id: json['id'] as int,
-      userId: json['user_id'] as int,
-      categoryId: json['category_id'] as int,
-      month: json['month'] as int,
-      year: json['year'] as int,
-      limitAmount: _toDouble(json['limit_amount']),
-      usedAmount: _toDouble(json['used_amount']),
-      percentUsed: _toDouble(json['percent_used']),
-      status: BudgetStatusX.fromApi(json['status'] as String),
-    );
-  }
-
-  final int id;
-  final int userId;
-  final int categoryId;
-  final int month;
-  final int year;
-  final double limitAmount;
-  final double usedAmount;
-  final double percentUsed;
-  final BudgetStatus status;
+  factory BudgetWithUsage.fromJson(Map<String, dynamic> json) => _$BudgetWithUsageFromJson(json);
 }
 
 /// Resposta de criação (`BudgetRead`) — não contém uso.
-class BudgetRead {
-  BudgetRead({
-    required this.id,
-    required this.userId,
-    required this.categoryId,
-    required this.month,
-    required this.year,
-    required this.limitAmount,
-  });
+@freezed
+abstract class BudgetRead with _$BudgetRead {
+  const factory BudgetRead({
+    required int id,
+    required int userId,
+    required int categoryId,
+    required int month,
+    required int year,
+    @DecimalToDoubleConverter() required double limitAmount,
+  }) = _BudgetRead;
 
-  factory BudgetRead.fromJson(Map<String, dynamic> json) {
-    return BudgetRead(
-      id: json['id'] as int,
-      userId: json['user_id'] as int,
-      categoryId: json['category_id'] as int,
-      month: json['month'] as int,
-      year: json['year'] as int,
-      limitAmount: _toDouble(json['limit_amount']),
-    );
-  }
-
-  final int id;
-  final int userId;
-  final int categoryId;
-  final int month;
-  final int year;
-  final double limitAmount;
-}
-
-double _toDouble(Object? value) {
-  if (value == null) return 0;
-  if (value is num) return value.toDouble();
-  if (value is String) return double.tryParse(value) ?? 0;
-  return 0;
+  factory BudgetRead.fromJson(Map<String, dynamic> json) => _$BudgetReadFromJson(json);
 }

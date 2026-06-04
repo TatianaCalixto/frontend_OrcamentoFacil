@@ -1,5 +1,21 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../../../core/json/converters.dart';
+
+part 'account_models.freezed.dart';
+part 'account_models.g.dart';
+
 /// Tipos de conta suportados pelo backend (`AccountType`).
-enum AccountType { checking, savings, creditCard, cash }
+enum AccountType {
+  @JsonValue('checking')
+  checking,
+  @JsonValue('savings')
+  savings,
+  @JsonValue('credit_card')
+  creditCard,
+  @JsonValue('cash')
+  cash,
+}
 
 extension AccountTypeX on AccountType {
   String get apiValue => switch (this) {
@@ -26,41 +42,17 @@ extension AccountTypeX on AccountType {
 }
 
 /// Conta completa retornada por `GET /accounts`.
-class AccountFull {
-  AccountFull({
-    required this.id,
-    required this.userId,
-    required this.name,
-    required this.type,
-    required this.initialBalance,
-    required this.currentBalance,
-    required this.isActive,
-  });
+@freezed
+abstract class AccountFull with _$AccountFull {
+  const factory AccountFull({
+    required int id,
+    required int userId,
+    required String name,
+    @JsonKey(unknownEnumValue: AccountType.checking) required AccountType type,
+    @DecimalToDoubleConverter() required double initialBalance,
+    @DecimalToDoubleConverter() required double currentBalance,
+    @Default(true) bool isActive,
+  }) = _AccountFull;
 
-  factory AccountFull.fromJson(Map<String, dynamic> json) {
-    return AccountFull(
-      id: json['id'] as int,
-      userId: json['user_id'] as int,
-      name: json['name'] as String,
-      type: AccountTypeX.fromApi(json['type'] as String),
-      initialBalance: _toDouble(json['initial_balance']),
-      currentBalance: _toDouble(json['current_balance']),
-      isActive: (json['is_active'] as bool?) ?? true,
-    );
-  }
-
-  final int id;
-  final int userId;
-  final String name;
-  final AccountType type;
-  final double initialBalance;
-  final double currentBalance;
-  final bool isActive;
-}
-
-double _toDouble(Object? value) {
-  if (value == null) return 0;
-  if (value is num) return value.toDouble();
-  if (value is String) return double.tryParse(value) ?? 0;
-  return 0;
+  factory AccountFull.fromJson(Map<String, dynamic> json) => _$AccountFullFromJson(json);
 }

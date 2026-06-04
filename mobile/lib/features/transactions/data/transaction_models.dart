@@ -1,5 +1,17 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../../../core/json/converters.dart';
+
+part 'transaction_models.freezed.dart';
+part 'transaction_models.g.dart';
+
 /// Tipo da transação no backend.
-enum TransactionType { income, expense }
+enum TransactionType {
+  @JsonValue('income')
+  income,
+  @JsonValue('expense')
+  expense,
+}
 
 extension TransactionTypeX on TransactionType {
   String get apiValue => switch (this) {
@@ -20,7 +32,20 @@ extension TransactionTypeX on TransactionType {
 }
 
 /// Forma de pagamento.
-enum PaymentMethod { cash, debit, credit, pix, transfer, other }
+enum PaymentMethod {
+  @JsonValue('cash')
+  cash,
+  @JsonValue('debit')
+  debit,
+  @JsonValue('credit')
+  credit,
+  @JsonValue('pix')
+  pix,
+  @JsonValue('transfer')
+  transfer,
+  @JsonValue('other')
+  other,
+}
 
 extension PaymentMethodX on PaymentMethod {
   String get apiValue => switch (this) {
@@ -55,118 +80,56 @@ extension PaymentMethodX on PaymentMethod {
   }
 }
 
-/// Representação do TransactionRead.
-class Transaction {
-  Transaction({
-    required this.id,
-    required this.userId,
-    required this.accountId,
-    required this.categoryId,
-    required this.type,
-    required this.amount,
-    required this.date,
-    this.description,
-    this.paymentMethod,
-    required this.isRecurring,
-    required this.createdAt,
-  });
+/// Representação do `TransactionRead`.
+@freezed
+abstract class Transaction with _$Transaction {
+  const factory Transaction({
+    required int id,
+    required int userId,
+    required int accountId,
+    required int categoryId,
+    @JsonKey(unknownEnumValue: TransactionType.expense) required TransactionType type,
+    @DecimalToDoubleConverter() required double amount,
+    required DateTime date,
+    String? description,
+    @JsonKey(unknownEnumValue: JsonKey.nullForUndefinedEnumValue) PaymentMethod? paymentMethod,
+    @Default(false) bool isRecurring,
+    required DateTime createdAt,
+  }) = _Transaction;
 
-  factory Transaction.fromJson(Map<String, dynamic> json) {
-    return Transaction(
-      id: json['id'] as int,
-      userId: json['user_id'] as int,
-      accountId: json['account_id'] as int,
-      categoryId: json['category_id'] as int,
-      type: TransactionTypeX.fromApi(json['type'] as String),
-      amount: _toDouble(json['amount']),
-      date: DateTime.parse(json['date'] as String),
-      description: json['description'] as String?,
-      paymentMethod: PaymentMethodX.fromApi(json['payment_method'] as String?),
-      isRecurring: (json['is_recurring'] as bool?) ?? false,
-      createdAt: DateTime.parse(json['created_at'] as String),
-    );
-  }
-
-  final int id;
-  final int userId;
-  final int accountId;
-  final int categoryId;
-  final TransactionType type;
-  final double amount;
-  final DateTime date;
-  final String? description;
-  final PaymentMethod? paymentMethod;
-  final bool isRecurring;
-  final DateTime createdAt;
+  factory Transaction.fromJson(Map<String, dynamic> json) => _$TransactionFromJson(json);
 }
 
 /// Página retornada por `GET /transactions`.
-class TransactionPage {
-  TransactionPage({
-    required this.items,
-    required this.total,
-    required this.page,
-    required this.pageSize,
-  });
+@freezed
+abstract class TransactionPage with _$TransactionPage {
+  const factory TransactionPage({
+    @Default(<Transaction>[]) List<Transaction> items,
+    required int total,
+    required int page,
+    required int pageSize,
+  }) = _TransactionPage;
 
-  factory TransactionPage.fromJson(Map<String, dynamic> json) {
-    final rawItems = (json['items'] as List?) ?? const [];
-    return TransactionPage(
-      items: rawItems
-          .whereType<Map<String, dynamic>>()
-          .map(Transaction.fromJson)
-          .toList(growable: false),
-      total: json['total'] as int,
-      page: json['page'] as int,
-      pageSize: json['page_size'] as int,
-    );
-  }
-
-  final List<Transaction> items;
-  final int total;
-  final int page;
-  final int pageSize;
+  factory TransactionPage.fromJson(Map<String, dynamic> json) => _$TransactionPageFromJson(json);
 }
 
 /// Conta (`AccountRead`) — modelo mínimo usado para popular selects/filtros.
-class Account {
-  Account({required this.id, required this.name});
+@freezed
+abstract class Account with _$Account {
+  const factory Account({required int id, required String name}) = _Account;
 
-  factory Account.fromJson(Map<String, dynamic> json) {
-    return Account(id: json['id'] as int, name: json['name'] as String);
-  }
-
-  final int id;
-  final String name;
+  factory Account.fromJson(Map<String, dynamic> json) => _$AccountFromJson(json);
 }
 
 /// Categoria (`CategoryRead`) — modelo mínimo.
-class Category {
-  Category({
-    required this.id,
-    required this.name,
-    required this.type,
-    this.color,
-  });
+@freezed
+abstract class Category with _$Category {
+  const factory Category({
+    required int id,
+    required String name,
+    @JsonKey(unknownEnumValue: TransactionType.expense) required TransactionType type,
+    String? color,
+  }) = _Category;
 
-  factory Category.fromJson(Map<String, dynamic> json) {
-    return Category(
-      id: json['id'] as int,
-      name: json['name'] as String,
-      type: TransactionTypeX.fromApi(json['type'] as String),
-      color: json['color'] as String?,
-    );
-  }
-
-  final int id;
-  final String name;
-  final TransactionType type;
-  final String? color;
-}
-
-double _toDouble(Object? value) {
-  if (value == null) return 0;
-  if (value is num) return value.toDouble();
-  if (value is String) return double.tryParse(value) ?? 0;
-  return 0;
+  factory Category.fromJson(Map<String, dynamic> json) => _$CategoryFromJson(json);
 }

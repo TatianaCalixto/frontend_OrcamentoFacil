@@ -1,4 +1,16 @@
-enum GoalStatus { inProgress, completed }
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../../../core/json/converters.dart';
+
+part 'goal_models.freezed.dart';
+part 'goal_models.g.dart';
+
+enum GoalStatus {
+  @JsonValue('in_progress')
+  inProgress,
+  @JsonValue('completed')
+  completed,
+}
 
 extension GoalStatusX on GoalStatus {
   String get apiValue => switch (this) {
@@ -18,47 +30,25 @@ extension GoalStatusX on GoalStatus {
       };
 }
 
-class Goal {
-  Goal({
-    required this.id,
-    required this.userId,
-    required this.name,
-    required this.targetAmount,
-    required this.currentAmount,
-    this.deadline,
-    required this.status,
-  });
+@freezed
+abstract class Goal with _$Goal {
+  // Construtor privado: habilita getters/metodos customizados (progress).
+  const Goal._();
 
-  factory Goal.fromJson(Map<String, dynamic> json) {
-    final rawDeadline = json['deadline'] as String?;
-    return Goal(
-      id: json['id'] as int,
-      userId: json['user_id'] as int,
-      name: json['name'] as String,
-      targetAmount: _toDouble(json['target_amount']),
-      currentAmount: _toDouble(json['current_amount']),
-      deadline: rawDeadline == null ? null : DateTime.parse(rawDeadline),
-      status: GoalStatusX.fromApi(json['status'] as String),
-    );
-  }
+  const factory Goal({
+    required int id,
+    required int userId,
+    required String name,
+    @DecimalToDoubleConverter() required double targetAmount,
+    @DecimalToDoubleConverter() required double currentAmount,
+    DateTime? deadline,
+    @JsonKey(unknownEnumValue: GoalStatus.inProgress) required GoalStatus status,
+  }) = _Goal;
 
-  final int id;
-  final int userId;
-  final String name;
-  final double targetAmount;
-  final double currentAmount;
-  final DateTime? deadline;
-  final GoalStatus status;
+  factory Goal.fromJson(Map<String, dynamic> json) => _$GoalFromJson(json);
 
   double get progress {
     if (targetAmount <= 0) return 0;
     return (currentAmount / targetAmount).clamp(0, 1).toDouble();
   }
-}
-
-double _toDouble(Object? value) {
-  if (value == null) return 0;
-  if (value is num) return value.toDouble();
-  if (value is String) return double.tryParse(value) ?? 0;
-  return 0;
 }

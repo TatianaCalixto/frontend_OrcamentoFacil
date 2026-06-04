@@ -16,6 +16,10 @@ analyzer:
     dead_code: error
     unused_import: warning
     unused_local_variable: warning
+    # freezed + json_serializable: @JsonKey em parametro de factory dispara este
+    # falso-positivo (o @Target do @JsonKey restringe a fields/getters, mas e o
+    # padrao do freezed). Solucao recomendada pelo freezed: ignorar este lint.
+    invalid_annotation_target: ignore
   exclude:
     - "**/*.g.dart"
     - "**/*.freezed.dart"

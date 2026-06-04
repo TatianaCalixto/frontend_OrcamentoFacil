@@ -1,20 +1,26 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../data/transaction_models.dart';
 import '../data/transactions_api.dart';
 
+part 'transactions_controller.freezed.dart';
+
 /// Estado da lista paginada de transações.
-class TransactionsState {
-  const TransactionsState({
-    required this.filters,
-    required this.items,
-    required this.page,
-    required this.total,
-    required this.isLoading,
-    required this.isLoadingMore,
-    required this.hasMore,
-    this.errorMessage,
-  });
+@freezed
+abstract class TransactionsState with _$TransactionsState {
+  const TransactionsState._();
+
+  const factory TransactionsState({
+    required TransactionFilters filters,
+    required List<Transaction> items,
+    required int page,
+    required int total,
+    required bool isLoading,
+    required bool isLoadingMore,
+    required bool hasMore,
+    String? errorMessage,
+  }) = _TransactionsState;
 
   factory TransactionsState.initial() => const TransactionsState(
         filters: TransactionFilters(),
@@ -26,40 +32,8 @@ class TransactionsState {
         hasMore: true,
       );
 
-  final TransactionFilters filters;
-  final List<Transaction> items;
-  final int page;
-  final int total;
-  final bool isLoading;
-  final bool isLoadingMore;
-  final bool hasMore;
-  final String? errorMessage;
-
   bool get isEmpty => !isLoading && items.isEmpty && errorMessage == null;
   bool get hasError => errorMessage != null;
-
-  TransactionsState copyWith({
-    TransactionFilters? filters,
-    List<Transaction>? items,
-    int? page,
-    int? total,
-    bool? isLoading,
-    bool? isLoadingMore,
-    bool? hasMore,
-    String? errorMessage,
-    bool clearError = false,
-  }) {
-    return TransactionsState(
-      filters: filters ?? this.filters,
-      items: items ?? this.items,
-      page: page ?? this.page,
-      total: total ?? this.total,
-      isLoading: isLoading ?? this.isLoading,
-      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
-      hasMore: hasMore ?? this.hasMore,
-      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
-    );
-  }
 }
 
 /// Controller de lista de transações com paginação por scroll infinito.
@@ -78,7 +52,7 @@ class TransactionsController extends Notifier<TransactionsState> {
       items: [],
       page: 0,
       hasMore: true,
-      clearError: true,
+      errorMessage: null,
     );
     await refresh();
   }
@@ -89,7 +63,7 @@ class TransactionsController extends Notifier<TransactionsState> {
       isLoading: true,
       isLoadingMore: false,
       page: 0,
-      clearError: true,
+      errorMessage: null,
     );
     try {
       final result = await _api.list(
@@ -118,7 +92,7 @@ class TransactionsController extends Notifier<TransactionsState> {
   Future<void> loadMore() async {
     if (!state.hasMore || state.isLoading || state.isLoadingMore) return;
     final nextPage = state.page + 1;
-    state = state.copyWith(isLoadingMore: true, clearError: true);
+    state = state.copyWith(isLoadingMore: true, errorMessage: null);
     try {
       final result = await _api.list(
         filters: state.filters,
