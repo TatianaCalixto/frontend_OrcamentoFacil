@@ -38,9 +38,9 @@ dependencies:
   go_router: ^17.2.3
   dio: ^5.9.2
   fl_chart: ^1.2.0
-  flutter_secure_storage: ^10.3.0
+  flutter_secure_storage: ^11.0.0
   flutter_dotenv: ^6.0.1
-  file_picker: ^11.0.0
+  file_picker: ^12.0.0-beta.7
   freezed_annotation: ^3.1.0
   json_annotation: ^4.9.0
   dio_cache_interceptor: ^4.0.6
@@ -56,8 +56,8 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
   mocktail: ^1.0.5
-  build_runner: ^2.15.0
-  freezed: ^3.2.3
+  build_runner: ^2.16.0
+  freezed: ^4.0.0-dev.3
   json_serializable: ^6.11.2
   flutter_launcher_icons: ^0.14.4
   flutter_native_splash: ^2.4.7
