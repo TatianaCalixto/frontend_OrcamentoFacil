@@ -92,7 +92,9 @@ Assim o app continua usando `http://localhost:8000` e alcança o backend da sua 
 
 Seguiu um fluxo de **documentação viva guiando a execução por sprints**: a documentação define o *quê* e os critérios de pronto, e a implementação avança sprint a sprint, com **testes obrigatórios** e **rastreabilidade** de cada módulo até a sprint que o originou (os commits seguem `feat(sXX-tYY): …`).
 
-Desenvolvido em **parceria com IA**: a arquitetura, os critérios e a documentação são definidos por mim; a IA executa sob essa direção, sprint a sprint. O método importa mais que a ferramenta. O detalhamento da metodologia e o plano operacional completo ficam fora deste repositório (em [metodologia_OrcamentoFacil](https://github.com/TatianaCalixto/metodologia_OrcamentoFacil)).
+O projeto foi desenvolvido com **apoio de IA generativa**, seguindo um processo organizado por requisitos, regras de negócio, documentação, tarefas e critérios de validação.
+
+Minha atuação envolve estruturar as necessidades do projeto, organizar e acompanhar as etapas de implementação, realizar testes, investigar problemas e validar as entregas. As ferramentas de IA auxiliam na implementação e também na análise de alternativas técnicas. O método está descrito em [metodologia_OrcamentoFacil](https://github.com/TatianaCalixto/metodologia_OrcamentoFacil).
 
 ## Repositórios do projeto
 
